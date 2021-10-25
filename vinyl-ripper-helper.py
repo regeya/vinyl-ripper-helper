@@ -40,6 +40,14 @@ from bs4 import BeautifulSoup,NavigableString
 from os import listdir,path
 from sys import exit
 from string import ascii_uppercase
+from pydub import AudioSegment, silence
+
+
+def giveResponse():
+  response = input('Type <Enter> to return or <Q> to quit: ')
+  if 'q' == response.lower():
+    exit(0)
+  return response
 
 def displayHelpInfo(helpType):
   """ Describe what an information request is seeking in sufficient
@@ -60,9 +68,16 @@ def displayHelpInfo(helpType):
     print('| list web page for the album from Discogs and     |')
     print('| re-run this application in the same directory.   |')
     print(bot)
-    response = input('Type <Enter> to return or <Q> to quit: ')
-    if 'q' == response or 'Q' == response:
-      exit(0)
+    giveResponse()
+  if helpType == 'selectwavFile':
+    print(top)
+    print('| This application requires a .wav file contain-   |')
+    print('| the raw audio data for the Audacity recording    |')
+    print('| of your audio recording project. If there are no |')
+    print('| .wav files listed above, select the appropriate  |')
+    print('| directory.                                       |')
+    print(bot)
+    giveResponse()
   elif helpType == 'leadInTime':
     print(top)
     print('| The lead-in time is any of the silent part of    |')
@@ -73,9 +88,7 @@ def displayHelpInfo(helpType):
     print('| for this in the recording, it is OK to use the   |')
     print('| delete function in Audacity to remove it.        |')
     print(bot)
-    response = input('Type <Enter> to return or <Q> to quit: ')
-    if 'q' == response or 'Q' == response:
-      exit(0)
+    giveResponse()
   elif helpType == 'trackGapTime':
     print(top)
     print('| The Track Gap Time for an album is the length    |')
@@ -85,9 +98,7 @@ def displayHelpInfo(helpType):
     print('| long as eight seconds. (We haven\'t tested every |')
     print('| album so there are probably longer ones).        |')
     print(bot)
-    response = input('Type <Enter> to return or <Q> to quit: ')
-    if 'q' == response or 'Q' == response:
-      exit(0)
+    giveResponse()
   elif helpType == 'approxTimings':
     print(top)
     print('| WARNING: the HTML file that was read for this    |')
@@ -103,11 +114,39 @@ def displayHelpInfo(helpType):
     print('| the first one to be repositioned manually to the |')
     print('| beginning of each track.                         |')
     print(bot)
-    response = input('Type <Enter> to continue with estmated time'+\
-       ' or <Q> to quit: ')
+    giveResponse()
+  return
+
+def selectWavInputFile():
+  """ Get the wav file containing the raw audio """
+  havewavFile = False
+  filepath = '.'
+  while havewavFile == False:
+    wavfilelist = displaywavFileList(filepath)
+    response = input('\nor Enter Different [P]ath, [H]elp, or [Q]uit: ')
+    if 'p' == response or 'P' == response:
+      filepath = input('Enter path to search for .wav track list file(s): ')
+      if False == path.isdir(filepath):
+        print('Unable to find filepath "%s"' % filepath)
+        exit(0)
+      continue
+    if 'h' == response or 'H' == response:
+      displayHelpInfo('selectWavFile')
+      string,response = selectWavInputFile()
     if 'q' == response or 'Q' == response:
       exit(0)
-  return
+    try:
+      idx = int(response)
+    except ValueError:
+      print('Unexpected response received: "%s", exiting.' % (response))
+      exit(0)
+    # return the .wav file requested by the user
+    if idx > len(htmlfilelist) or idx < 0:
+      print('ERROR: Your selection "%s" is not a valid file number, exiting.' % response)
+      exit(0)
+    idx = idx - 1
+    print('You responded: %s: "%s"' % (response.upper(),wavfilelist[idx]))
+    return wavfilelist[idx],response
 
 
 def selectHtmlInputFile():
@@ -145,7 +184,7 @@ def selectHtmlInputFile():
 def determineHtmlPageType(filepath):
   """ Class to help with web page tracklists that use a variation of the
     more common page structure """
-  soup = BeautifulSoup (open(filepath), features="lxml")
+  soup = BeautifulSoup (open(filepath, errors='replace'), features="lxml")
   tables = soup.find_all('table')
   for table in tables:
     if 'class' in table.attrs:
@@ -170,10 +209,22 @@ def displayHtmlFileList(filepath):
       htmlfilelist.append(path.join(filepath,filename))
   return htmlfilelist
 
+def displaywavFileList(filepath):
+  """ Read and display a list of wav files at the specified path. """
+  print("\nSelect the name of the .wav file containing the audio data:\n")
+  filelist = listdir(filepath)
+  index = 1
+  htmlfilelist = []
+  for filename in filelist:
+    if filename.endswith('.wav'):
+      print('\t[%d] %s' % (index, filename))
+      index += 1
+      wavfilelist.append(path.join(filepath,filename))
+  return wavfilelist
 
 def readAlbumLabelDataFromHtml(filepath, tabletype):
   """ Read the track list table from the HTML file provided """
-  soup = BeautifulSoup (open(filepath), features="lxml")
+  soup = BeautifulSoup (open(filepath, errors='replace'), features="lxml")
   found_pos = False
   found_time = False
   tracklist = []
@@ -287,7 +338,7 @@ def parseTitleString(pagetitle):
 def readAlbumTagsDataFromHtml(filepath):
   """ Read the title, artist, genre, and year metadata from the HTML file """
   tagsdict = {}
-  soup = BeautifulSoup (open(filepath), features="lxml")
+  soup = BeautifulSoup (open(filepath, errors='replace'), features="lxml")
   pagetitle = soup.find('title').text
   # note use of cleanUpString() due to tags used in XML string format
   (album,artist,year,year_found) = parseTitleString(pagetitle)
@@ -362,7 +413,6 @@ def getSecs(time_str):
     m, s = time_str.split(':')
     return int(m) * 60 + int(s)
 
-
 def calculateTiming(leadin,trackgap,tracklist):
   """ Do the number crunching to label each track at the correct
     time in the recording """
@@ -393,6 +443,11 @@ def calculateTiming(leadin,trackgap,tracklist):
       calclist.append(labelinf)
   return calclist
 
+def findSilence(filename, tracklist):
+  myaudio = AudioSegment.from_wav(filename)
+  dbFS = myaudio.dBFS
+  silence = silence.detect_silence(myaudio, min_silence_len=1000, silence_thresh=dbFS-16)
+  print(silence)
 
 def writeLabelFile(labellist, tagsdict):
   """ Write the plaintext labels output file to the current path. """
@@ -468,6 +523,7 @@ def cleanUpString(inputstring):
 def main():
   """ program main function """
   htmlfile,ignorethis = selectHtmlInputFile()
+  wavfile,ignorethis = selectwavInputFile()
   pagetype = determineHtmlPageType(htmlfile)
   tracklist = readAlbumLabelDataFromHtml(htmlfile,pagetype)
   tagsdict = readAlbumTagsDataFromHtml(htmlfile)
