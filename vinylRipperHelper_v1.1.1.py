@@ -40,6 +40,8 @@ from bs4 import BeautifulSoup,NavigableString
 from os import listdir,path
 from sys import exit
 from string import ascii_uppercase
+from pydub import AudioSegment, silence
+
 
 def displayHelpInfo(helpType):
   """ Describe what an information request is seeking in sufficient
@@ -109,6 +111,36 @@ def displayHelpInfo(helpType):
       exit(0)
   return
 
+def selectHtmlInputFile():
+  """ Get the HTML file containing the album track list """
+  haveHtmlFile = False
+  filepath = '.'
+  while haveHtmlFile == False:
+    htmlfilelist = displayHtmlFileList(filepath)
+    response = input('\nor Enter Different [P]ath, [H]elp, or [Q]uit: ')
+    if 'p' == response or 'P' == response:
+      filepath = input('Enter path to search for HTML track list file(s): ')
+      if False == path.isdir(filepath):
+        print('Unable to find filepath "%s"' % filepath)
+        exit(0)
+      continue
+    if 'h' == response or 'H' == response:
+      displayHelpInfo('selectHtmlFile')
+      string,response = selectHtmlInputFile()
+    if 'q' == response or 'Q' == response:
+      exit(0)
+    try:
+      idx = int(response)
+    except ValueError:
+      print('Unexpected response received: "%s", exiting.' % (response))
+      exit(0)
+    # return the HTML file requested by the user
+    if idx > len(htmlfilelist) or idx < 0:
+      print('ERROR: Your selection "%s" is not a valid file number, exiting.' % response)
+      exit(0)
+    idx = idx - 1
+    print('You responded: %s: "%s"' % (response.upper(),htmlfilelist[idx]))
+    return htmlfilelist[idx],response
 
 def selectHtmlInputFile():
   """ Get the HTML file containing the album track list """
@@ -362,7 +394,6 @@ def getSecs(time_str):
     m, s = time_str.split(':')
     return int(m) * 60 + int(s)
 
-
 def calculateTiming(leadin,trackgap,tracklist):
   """ Do the number crunching to label each track at the correct
     time in the recording """
@@ -393,6 +424,11 @@ def calculateTiming(leadin,trackgap,tracklist):
       calclist.append(labelinf)
   return calclist
 
+def findSilence(filename, tracklist):
+  myaudio = AudioSegment.from_wav(filename)
+  dbFS = myaudio.dBFS
+  silence = silence.detect_silence(myaudio, min_silence_len=1000, silence_thresh=dbFS-16)
+  print(silence)
 
 def writeLabelFile(labellist, tagsdict):
   """ Write the plaintext labels output file to the current path. """
