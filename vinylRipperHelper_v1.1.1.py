@@ -386,7 +386,7 @@ def calculateTiming(leadin,trackgap,tracklist):
       # handle the tracks after the first (trackgap offset)
       totalsecs += getSecs(prevtracktime) + float(trackgap)
       labelinf['time'] = totalsecs
-      trackend = totalsecs + float(getSecs(track['time']))
+      trackend = totalsecs + float(getSecs(track['time'])) - trackgap
       labelinf['duration'] = trackend
       prevtracktime = track['time']
       labelinf['title'] = track['title']
