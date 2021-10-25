@@ -43,6 +43,12 @@ from string import ascii_uppercase
 from pydub import AudioSegment, silence
 
 
+def giveResponse():
+  response = input('Type <Enter> to return or <Q> to quit: ')
+  if 'q' == response.lower():
+    exit(0)
+  return response
+
 def displayHelpInfo(helpType):
   """ Describe what an information request is seeking in sufficient
   detail for the program user. """
@@ -62,9 +68,7 @@ def displayHelpInfo(helpType):
     print('| list web page for the album from Discogs and     |')
     print('| re-run this application in the same directory.   |')
     print(bot)
-    response = input('Type <Enter> to return or <Q> to quit: ')
-    if 'q' == response or 'Q' == response:
-      exit(0)
+    giveResponse()
   if helpType == 'selectwavFile':
     print(top)
     print('| This application requires a .wav file contain-   |')
@@ -73,9 +77,7 @@ def displayHelpInfo(helpType):
     print('| .wav files listed above, select the appropriate  |')
     print('| directory.                                       |')
     print(bot)
-    response = input('Type <Enter> to return or <Q> to quit: ')
-    if 'q' == response or 'Q' == response:
-      exit(0)
+    giveResponse()
   elif helpType == 'leadInTime':
     print(top)
     print('| The lead-in time is any of the silent part of    |')
@@ -86,9 +88,7 @@ def displayHelpInfo(helpType):
     print('| for this in the recording, it is OK to use the   |')
     print('| delete function in Audacity to remove it.        |')
     print(bot)
-    response = input('Type <Enter> to return or <Q> to quit: ')
-    if 'q' == response or 'Q' == response:
-      exit(0)
+    giveResponse()
   elif helpType == 'trackGapTime':
     print(top)
     print('| The Track Gap Time for an album is the length    |')
@@ -98,9 +98,7 @@ def displayHelpInfo(helpType):
     print('| long as eight seconds. (We haven\'t tested every |')
     print('| album so there are probably longer ones).        |')
     print(bot)
-    response = input('Type <Enter> to return or <Q> to quit: ')
-    if 'q' == response or 'Q' == response:
-      exit(0)
+    giveResponse()
   elif helpType == 'approxTimings':
     print(top)
     print('| WARNING: the HTML file that was read for this    |')
@@ -116,10 +114,7 @@ def displayHelpInfo(helpType):
     print('| the first one to be repositioned manually to the |')
     print('| beginning of each track.                         |')
     print(bot)
-    response = input('Type <Enter> to continue with estmated time'+\
-       ' or <Q> to quit: ')
-    if 'q' == response or 'Q' == response:
-      exit(0)
+    giveResponse()
   return
 
 def selectWavInputFile():
@@ -528,6 +523,7 @@ def cleanUpString(inputstring):
 def main():
   """ program main function """
   htmlfile,ignorethis = selectHtmlInputFile()
+  wavfile,ignorethis = selectwavInputFile()
   pagetype = determineHtmlPageType(htmlfile)
   tracklist = readAlbumLabelDataFromHtml(htmlfile,pagetype)
   tagsdict = readAlbumTagsDataFromHtml(htmlfile)
