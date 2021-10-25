@@ -65,6 +65,17 @@ def displayHelpInfo(helpType):
     response = input('Type <Enter> to return or <Q> to quit: ')
     if 'q' == response or 'Q' == response:
       exit(0)
+  if helpType == 'selectwavFile':
+    print(top)
+    print('| This application requires a .wav file contain-   |')
+    print('| the raw audio data for the Audacity recording    |')
+    print('| of your audio recording project. If there are no |')
+    print('| .wav files listed above, select the appropriate  |')
+    print('| directory.                                       |')
+    print(bot)
+    response = input('Type <Enter> to return or <Q> to quit: ')
+    if 'q' == response or 'Q' == response:
+      exit(0)
   elif helpType == 'leadInTime':
     print(top)
     print('| The lead-in time is any of the silent part of    |')
@@ -111,22 +122,22 @@ def displayHelpInfo(helpType):
       exit(0)
   return
 
-def selectHtmlInputFile():
-  """ Get the HTML file containing the album track list """
-  haveHtmlFile = False
+def selectWavInputFile():
+  """ Get the wav file containing the raw audio """
+  havewavFile = False
   filepath = '.'
-  while haveHtmlFile == False:
-    htmlfilelist = displayHtmlFileList(filepath)
+  while havewavFile == False:
+    wavfilelist = displaywavFileList(filepath)
     response = input('\nor Enter Different [P]ath, [H]elp, or [Q]uit: ')
     if 'p' == response or 'P' == response:
-      filepath = input('Enter path to search for HTML track list file(s): ')
+      filepath = input('Enter path to search for .wav track list file(s): ')
       if False == path.isdir(filepath):
         print('Unable to find filepath "%s"' % filepath)
         exit(0)
       continue
     if 'h' == response or 'H' == response:
-      displayHelpInfo('selectHtmlFile')
-      string,response = selectHtmlInputFile()
+      displayHelpInfo('selectWavFile')
+      string,response = selectWavInputFile()
     if 'q' == response or 'Q' == response:
       exit(0)
     try:
@@ -134,13 +145,14 @@ def selectHtmlInputFile():
     except ValueError:
       print('Unexpected response received: "%s", exiting.' % (response))
       exit(0)
-    # return the HTML file requested by the user
+    # return the .wav file requested by the user
     if idx > len(htmlfilelist) or idx < 0:
       print('ERROR: Your selection "%s" is not a valid file number, exiting.' % response)
       exit(0)
     idx = idx - 1
-    print('You responded: %s: "%s"' % (response.upper(),htmlfilelist[idx]))
-    return htmlfilelist[idx],response
+    print('You responded: %s: "%s"' % (response.upper(),wavfilelist[idx]))
+    return wavfilelist[idx],response
+
 
 def selectHtmlInputFile():
   """ Get the HTML file containing the album track list """
@@ -202,6 +214,18 @@ def displayHtmlFileList(filepath):
       htmlfilelist.append(path.join(filepath,filename))
   return htmlfilelist
 
+def displaywavFileList(filepath):
+  """ Read and display a list of wav files at the specified path. """
+  print("\nSelect the name of the .wav file containing the audio data:\n")
+  filelist = listdir(filepath)
+  index = 1
+  htmlfilelist = []
+  for filename in filelist:
+    if filename.endswith('.wav'):
+      print('\t[%d] %s' % (index, filename))
+      index += 1
+      wavfilelist.append(path.join(filepath,filename))
+  return wavfilelist
 
 def readAlbumLabelDataFromHtml(filepath, tabletype):
   """ Read the track list table from the HTML file provided """
