@@ -445,9 +445,10 @@ def calculateTiming(leadin,trackgap,tracklist):
       calclist.append(labelinf)
   return calclist
 
-def findSilence(filename, tracklist):
+def findSilence(silence, filename, tracklist):
   myaudio = AudioSegment.from_wav(filename)
   dbFS = myaudio.dBFS
+  print("Detecting silent parts of recording, please be patient...")
   silence = silence.detect_silence(myaudio, min_silence_len=1000, silence_thresh=dbFS-16)
   print(silence)
 
@@ -529,6 +530,7 @@ def main():
   pagetype = determineHtmlPageType(htmlfile)
   tracklist = readAlbumLabelDataFromHtml(htmlfile,pagetype)
   tagsdict = readAlbumTagsDataFromHtml(htmlfile)
+  findSilence(silence, wavfile, tracklist)
   labellist = buildLabelFile(tracklist,tagsdict['ALBUM'])
   writeLabelFile(labellist,tagsdict)
   writeTagsFile(tagsdict)
