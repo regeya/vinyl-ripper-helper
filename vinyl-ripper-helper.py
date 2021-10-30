@@ -143,7 +143,7 @@ def selectWavInputFile():
       print('Unexpected response received: "%s", exiting.' % (response))
       exit(0)
     # return the .wav file requested by the user
-    if idx > len(htmlfilelist) or idx < 0:
+    if idx > len(wavfilelist) or idx < 0:
       print('ERROR: Your selection "%s" is not a valid file number, exiting.' % response)
       exit(0)
     idx = idx - 1
@@ -216,7 +216,7 @@ def displaywavFileList(filepath):
   print("\nSelect the name of the .wav file containing the audio data:\n")
   filelist = listdir(filepath)
   index = 1
-  htmlfilelist = []
+  wavfilelist = []
   for filename in filelist:
     if filename.endswith('.wav'):
       print('\t[%d] %s' % (index, filename))
@@ -525,7 +525,7 @@ def cleanUpString(inputstring):
 def main():
   """ program main function """
   htmlfile,ignorethis = selectHtmlInputFile()
-  wavfile,ignorethis = selectwavInputFile()
+  wavfile,ignorethis = selectWavInputFile()
   pagetype = determineHtmlPageType(htmlfile)
   tracklist = readAlbumLabelDataFromHtml(htmlfile,pagetype)
   tagsdict = readAlbumTagsDataFromHtml(htmlfile)
