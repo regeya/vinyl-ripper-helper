@@ -450,7 +450,8 @@ def findSilence(silence, filename, tracklist):
   dbFS = myaudio.dBFS
   print("Detecting silent parts of recording, please be patient...")
   silence = silence.detect_silence(myaudio, min_silence_len=1000, silence_thresh=dbFS-16)
-  print(silence)
+  silence = [((start/1000.0),(stop/1000.0)) for start,stop in silence] #in sec
+  return silence
 
 def writeLabelFile(labellist, tagsdict):
   """ Write the plaintext labels output file to the current path. """
@@ -471,8 +472,22 @@ def writeLabelFile(labellist, tagsdict):
         filehandle.write('%f\t%f\t%s\n' % (label['time'],label['duration'],label['title']))
     filehandle.close()
 
+def buildSilenceList(silence, calclist):
+  """ Use silence detected by pydub and compare to times calculated from discogs entry.
+  Choose the moment of silence closest to what the estimated time is.  """
+  for item in calclist:
+    quiet = []
+    for part in silence:
+      time1 = item["time"]
+      time2 = part[0]
+      quiet.append([abs(time1-time2), item["time"], item["duration"]])
+    quiet = sorted(quiet, key=lambda x: x[0])
+    chosen = quiet[0]
+    item["time"] = chosen[1]
+    item["duration"] = chosen[2]
+  return(calclist)
 
-def buildLabelFile(tracklist,albumname):
+def buildLabelFile(silence, tracklist, albumname):
   """ Convert the tracklist data to the label file format """
   #print('DBG: track list count = %d' % (len(tracklist)))
   print("\n++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -482,7 +497,8 @@ def buildLabelFile(tracklist,albumname):
     "Audacity recording.")
   leadin = getLeadInTime()
   trackgap = getTrackGapTime()
-  calclist = calculateTiming(leadin,trackgap,tracklist)
+  calclist = calculateTiming(leadin, trackgap, tracklist)
+  calclist = buildSilenceList(silence, calclist)
   print('The label list is:\n------------------------------------------')
   for item in calclist:
     print('%f\t%f\t%s' % (item['time'],item['duration'],item['title']))
@@ -530,8 +546,8 @@ def main():
   pagetype = determineHtmlPageType(htmlfile)
   tracklist = readAlbumLabelDataFromHtml(htmlfile,pagetype)
   tagsdict = readAlbumTagsDataFromHtml(htmlfile)
-  findSilence(silence, wavfile, tracklist)
-  labellist = buildLabelFile(tracklist,tagsdict['ALBUM'])
+  quiet = findSilence(silence, wavfile, tracklist)
+  labellist = buildLabelFile(quiet, tracklist, tagsdict['ALBUM'])
   writeLabelFile(labellist,tagsdict)
   writeTagsFile(tagsdict)
   print('Process completed.')
