@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """ -------------------------------------------------------------------------------
 Vinyl Ripper helper script for Audacity users, by Scott Chilcote
 This software is licensed under GPLv3
