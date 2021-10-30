@@ -475,25 +475,25 @@ def writeLabelFile(labellist, tagsdict):
 def buildSilenceList(silence, calclist):
   """ Use silence detected by pydub and compare to times calculated from discogs entry.
   Choose the moment of silence closest to what the estimated time is.  """
-  durations = []
+  beginnings = [i[1] for i in silence]
+  ends = [i[0] for i in silence]
   newlist = []
-  prev = 0
-  for i in silence:
-    durations.append([prev, i[0]])
-    prev = i[1]
   for item in calclist:
-    quiet = []
-    for part in durations:
-      time1 = item["time"]
-      time2 = part[0]
-      quiet.append(abs(time1-time2), part[0], part[1])
-    quiet = sorted(quiet, key=lambda x: x[0])
-    chosen = quiet[0]
+    # build lists showing distance between calculated track beginnings and ends,
+    # and sort by distance.  Choose the one closest to the estimated time; assume
+    # the beginning of a silent period is the end of a track, and the end of a silent
+    # space is the beginning of a track.
+    b = [[abs(b-item["time"]), b] for b in beginnings]
+    e = [[abs(e-item["duration"]), e] for e in ends]
+    b = sorted(b, key=lambda x: x[0])
+    e = sorted(e, key=lambda x: x[0])
     newitem = item
-    newitem["time"] = chosen[1]
-    print(newitem["time"], chosen[1])
-    newitem["duration"] = chosen[2]
-    print(newitem["duration"], chosen[2])
+    #assign the beginning and end of a silent region to this value, unless it's 
+    #more than 30 seconds away from the estimated time; in that case, keep the old value.
+    if abs(newitem["time"]-b[0]) < 30:
+      newitem["time"] = b[0]
+    if abs(newitem["duration"]-e[0]) < 30:
+      newitem["duration"] = e[0]
     newlist.append(newitem)
   return(newlist)
 
