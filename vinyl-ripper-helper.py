@@ -483,8 +483,8 @@ def buildSilenceList(silence, calclist):
     # and sort by distance.  Choose the one closest to the estimated time; assume
     # the beginning of a silent period is the end of a track, and the end of a silent
     # space is the beginning of a track.
-    b = [[abs(b-item["time"]), b] for b in beginnings]
-    e = [[abs(e-item["duration"]), e] for e in ends]
+    b = [[abs(i-item["time"]), i] for i in beginnings]
+    e = [[abs(i-item["duration"]), i] for i in ends]
     b = sorted(b, key=lambda x: x[0])
     e = sorted(e, key=lambda x: x[0])
     newitem = item
