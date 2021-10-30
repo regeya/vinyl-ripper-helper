@@ -490,10 +490,12 @@ def buildSilenceList(silence, calclist):
     newitem = item
     #assign the beginning and end of a silent region to this value, unless it's 
     #more than 30 seconds away from the estimated time; in that case, keep the old value.
-    if abs(newitem["time"]-b[0]) < 30:
-      newitem["time"] = b[0]
-    if abs(newitem["duration"]-e[0]) < 30:
-      newitem["duration"] = e[0]
+    b1 = b[0][1]
+    e1 = e[0][1]
+    if abs(newitem["time"]-b1) < 30:
+      newitem["time"] = b1
+    if abs(newitem["duration"]-e1) < 30:
+      newitem["duration"] = e1
     newlist.append(newitem)
   return(newlist)
 
