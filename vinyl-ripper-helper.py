@@ -475,17 +475,27 @@ def writeLabelFile(labellist, tagsdict):
 def buildSilenceList(silence, calclist):
   """ Use silence detected by pydub and compare to times calculated from discogs entry.
   Choose the moment of silence closest to what the estimated time is.  """
+  durations = []
+  newlist = []
+  prev = 0
+  for i in silence:
+    durations.append([prev, i[0]])
+    prev = i[1]
   for item in calclist:
     quiet = []
-    for part in silence:
+    for part in durations:
       time1 = item["time"]
       time2 = part[0]
-      quiet.append([abs(time1-time2), item["time"], item["duration"]])
+      quiet.append(abs(time1-time2), part[0], part[1])
     quiet = sorted(quiet, key=lambda x: x[0])
     chosen = quiet[0]
-    item["time"] = chosen[1]
-    item["duration"] = chosen[2]
-  return(calclist)
+    newitem = item
+    newitem["time"] = chosen[1]
+    print(newitem["time"], chosen[1])
+    newitem["duration"] = chosen[2]
+    print(newitem["duration"], chosen[2])
+    newlist.append(newitem)
+  return(newlist)
 
 def buildLabelFile(silence, tracklist, albumname):
   """ Convert the tracklist data to the label file format """
@@ -498,8 +508,12 @@ def buildLabelFile(silence, tracklist, albumname):
   leadin = getLeadInTime()
   trackgap = getTrackGapTime()
   calclist = calculateTiming(leadin, trackgap, tracklist)
+  print('The label list before detecting silence is:\n------------------------------------------')
+  for item in calclist:
+    print('%f\t%f\t%s' % (item['time'],item['duration'],item['title']))
+  print('------------------------------------------')
   calclist = buildSilenceList(silence, calclist)
-  print('The label list is:\n------------------------------------------')
+  print('The new label list is:\n------------------------------------------')
   for item in calclist:
     print('%f\t%f\t%s' % (item['time'],item['duration'],item['title']))
   print('------------------------------------------')
