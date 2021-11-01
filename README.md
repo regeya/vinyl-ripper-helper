@@ -2,7 +2,7 @@
 
 This is a branch of Scott C.'s excellent vinyl ripper utility.  It did about 99% of what I wanted in a helper app, and works great for several others.  However, for my own wants and needs, I wanted to change the way the script wrote tags, and used PyDub to add silence detection to the script.
 
-I'm also removing the PDF from this fork; while it's an excellend and thorough manual, because I'm changing the functionality enought that it warranted a rewrite; rather than get Scott C.'s permission to edit his original document, I'm going to attempt to write some abridged instructions in a Free format like Markdown.
+I'm also removing the PDF from this fork; while it's an excellend and thorough manual, because I'm changing the functionality enough that it warranted a rewrite, rather than get Scott C.'s permission to edit his original document, I'm going to attempt to write some abridged instructions in a Free format like Markdown.
 
 This fork is a work in progress; feel free to consult ScottC's repo for the original stable script.
 
