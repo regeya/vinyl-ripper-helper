@@ -1,142 +1,87 @@
-> **Developer & Designer: Scott R. Chilcote Software License:
-> [[GPLv3]{.ul}](https://www.gnu.org/licenses/gpl-3.0.en.html)**
+**Developer & Designer: Scott R. Chilcote Software License:
+[[GPLv3]{.ul}](https://www.gnu.org/licenses/gpl-3.0.en.html)**
 >
-> **Document Version: 1.1, March 2021**
+**Document Version: 1.1, March 2021**
 >
-> **This document is copyright © 2021 by Scott Chilcote**
+**This document is copyright © 2021 by Scott Chilcote**
 
-[Introduction 1](#introduction)
+[Introduction](#introduction)
 
-[Walkthrough in Brief 2](#walkthrough-in-brief)
+[Walkthrough in Brief](#walkthrough-in-brief)
 
-[Using Vinyl Ripper Helper for the First Time
-4](#using-vinyl-ripper-helper-for-the-first-time)
+[Using Vinyl Ripper Helper for the First Time](#using-vinyl-ripper-helper-for-the-first-time) 
 
-1.  [VinylRipperHelper is a Python Program
-    > 4](#vinylripperhelper-is-a-python-program)
+[VinylRipperHelper is a Python Program](#vinylripperhelper-is-a-python-program)
 
-2.  [Prepare Your Audacity Recording
-    > 4](#prepare-your-audacity-recording)
+[Prepare Your Audacity Recording](#prepare-your-audacity-recording) 
 
-3.  [Get the Track List HTML File for the Album
-    > 6](#get-the-track-list-html-file-for-the-album)
+[Get the Track List HTML File for the Album](#get-the-track-list-html-file-for-the-album) 
 
-4.  [Run the VinylRipperHelper script
-    > 8](#run-the-vinylripperhelper-script)
+[Run the VinylRipperHelper script](#run-the-vinylripperhelper-script) 
 
-[When the List Has No Track Times 8](#when-the-list-has-no-track-times)
+[When the List Has No Track Times](#when-the-list-has-no-track-times)
 
-5.  [Import the Label File 9](#import-the-label-file)
+[Import the Label File](#import-the-label-file)
 
-6.  [Import the Metadata Tags File 10](#import-the-metadata-tags-file)
+[Import the Metadata Tags File](#import-the-metadata-tags-file)
 
-[Last Step 12](#last-step)
+[Last Step](#last-step)
 
-[FAQ 13](#faq)
+[FAQ](#faq)
 
 # Introduction
 
-> VinylRipperHelper, or VRH is a Python utility for people who use the
-> free software [Audacity](https://www.audacityteam.org/) application to
-> "rip" vinyl LP records and tapes to digital format. To use VRH in its
-> initial version, one first needs to make a recording of an album that
-> he/she would like to rip. Then one needs to download the tracklist
-> page for the album being ripped from the
-> [Discogs.com](https://discogs.com/) website.
->
-> Then run VRH, and it will 1) extract the track list and times, and use
-> them to create the labels that are needed to identify all of the songs
-> on the recording. VRH will also 2) Create a "tags" template file to
-> use with the Audacity metadata editor. This file provides all of the
-> XML tags for the album including the title, artist, genre, year, plus
-> any other tags that were listed for the album in the
-> [discogs.com](https://discogs.com/) tracklist page.
->
-> Combined together, these two files substantially reduce the amount of
-> time-consuming data entry required to perform the process for
-> exporting multiple tracks to individual song files with Audacity.
+VinylRipperHelper, or VRH is a Python utility for people who use the free software [Audacity](https://www.audacityteam.org/) application to "rip" vinyl LP records and tapes to digital format. To use VRH in its initial version, one first needs to make a recording of an album that he/she would like to rip. Then one needs to download the tracklist page for the album being ripped from the [Discogs.com](https://discogs.com/) website.
+
+Then run VRH, and it will 1) extract the track list and times, and use them to create the labels that are needed to identify all of the songs on the recording. VRH will also 2) Create a "tags" template file to use with the Audacity metadata editor. This file provides all of the XML tags for the album including the title, artist, genre, year, plus any other tags that were listed for the album in the [discogs.com](https://discogs.com/) tracklist page.
+
+Combined together, these two files substantially reduce the amount of time-consuming data entry required to perform the process for exporting multiple tracks to individual song files with Audacity.
 
 # Walkthrough in Brief
 
-> For those who are already familiar with the process of ripping with
-> Audacity's **Export Multiple**
->
-> function, here are the steps needed to use VRH to label and tag a
-> recording for export.
+For those who are already familiar with the process of ripping with Audacity's **Export Multiple** function, here are the steps needed to use VRH to label and tag a recording for export.
 
-1.  Record your album
+- Record your album
 
-2.  To make it a little easier to position the labels, make the
-    > following tweaks to the recording:
+- To make it a little easier to position the labels, make the following tweaks to the recording: 
 
-    a.  Delete any "lead-in" time (silence) before the start of the
-        > first track
 
-    b.  If the album has multiple sides, combine them to make one
-        > continuous recording
 
-    c.  Measure the Track Gap (silence between each track), usually 2 to
-        > 7 seconds
+> - Delete any "lead-in" time (silence) before the start of the first track
 
-    d.  Make the Side Gap (any silence recorded between two sides)
-        > consistent with the track gap - this makes the label placement
-        > more accurate
+> - If the album has multiple sides, combine them to make one continuous recording
 
-3.  Perform any processing of the recording with Audacity that you need
-    > to clean up the recording; for example, apply Silence to the track
-    > gaps if they are noisy, and use the "Click Removal" Effect to make
-    > any scratches quieter
+> - Measure the Track Gap (silence between each track), usually 2 to 7 seconds 
 
-4.  Go to [Discogs.com](https://www.discogs.com/) and find the album
-    > that most closely matches the one that you recorded. If there are
-    > multiple versions of the album, choose one that has the track
-    > times listed after the name of each song or track. Then download
-    > it (just the HTML file) to a local directory.
+> - Make the Side Gap (any silence recorded between two sides) consistent with the track gap - this makes the label placement more accurate
 
-5.  Place the VinylRipperHelper python program in the same directory and
-    > run it. Select the track list HTML file from the displayed list.
+- Perform any processing of the recording with Audacity that you need to clean up the recording; for example, apply Silence to the track gaps if they are noisy, and use the "Click Removal" Effect to make any scratches quieter
 
-6.  Follow through the prompts VRH displays to get the information that
-    > it needs to perform label positioning.
+- Go to [Discogs.com](https://www.discogs.com/) and find the album that most closely matches the one that you recorded. If there are multiple versions of the album, choose one that has the track times listed after the name of each song or track. Then download it (just the HTML file) to a local directory.
 
-> ***Note:** If no track list page with time values is available, VRH
-> will offer to perform a very simple position estimation process to
-> label the recording. See item #4 in the next section for more
-> details.*
+- Place the VinylRipperHelper python program in the same directory and run it. Select the track list HTML file from the displayed list.
 
-7.  Finish the VRH process and save the label list text file and tags
-    > XML file to the storage medium. You have the option to accept the
-    > default names, or enter your own filenames. The script will add
-    > the file extensions (.txt and .xml).
+- Follow through the prompts VRH displays to get the information that it needs to perform label positioning.
 
-8.  If you haven't done so yet, open the project file for the album to
-    > be ripped in Audacity. Then load the Labels file that VRH created.
+ > ***Note:** If no track list page with time values is available, VRH  will offer to perform a very simple position estimation process to  label the recording. See item #4 in the next section for more  details.*
 
-> This is done as follows:
+- Finish the VRH process and save the label list text file and tags XML file to the storage medium. You have the option to accept the default names, or enter your own filenames. The script will add the file extensions (.txt and .xml).
 
-a.  In Audacity's File menu, select **Import \--\> Labels...**
+- If you haven't done so yet, open the project file for the album to be ripped in Audacity. Then load the Labels file that VRH created.
 
-b.  Audacity will display the system file selector, find the Labels file
-    > that VRH created and load it.
+This is done as follows:
 
-```{=html}
-<!-- -->
-```
-9.  At this point two things will happen: 1) the labels track will be
-    > added below the audio track for the recording. 2) Audacity will
-    > "Zoom Out" automatically to show the entire length of the labels
-    > track and recording. *See item #5 in the next section for details
-    > on how to reposition the track labels*.
+> - In Audacity's File menu, select **Import \--\> Labels...**
 
-10. Adjust each label's position to the beginning of the associated
-    > track, as needed.
+>  - Audacity will display the system file selector, find the Labels file that VRH created and load it.
 
-11. Load the Tags XML template file next. To do this, select Audacity's
-    > **Edit → Metadata...**
+- At this point two things will happen: 1) the labels track will be added below the audio track for the recording. 2) Audacity will "Zoom Out" automatically to show the entire length of the labels track and recording. *See item #5 in the next section for details on how to reposition the track labels*.
 
-> menu operation.
+- Adjust each label's position to the beginning of the associated track, as needed.
 
-a.  In the Metadata Editor panel, move the cursor to the **Template →
+- Load the Tags XML template file next. To do this, select Audacity's **Edit -> Metadata...**   menu operation.
+
+> - In the Metadata Editor panel, move the cursor to the **Template →
     > Load** button. In the file selector that appears, load the
     > Metadata Tags XML file that VRH created.
 
