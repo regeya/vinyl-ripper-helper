@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """ -------------------------------------------------------------------------------
 Vinyl Ripper helper script for Audacity users, by Scott Chilcote
 This software is licensed under GPLv3
@@ -141,7 +143,7 @@ def selectWavInputFile():
       print('Unexpected response received: "%s", exiting.' % (response))
       exit(0)
     # return the .wav file requested by the user
-    if idx > len(htmlfilelist) or idx < 0:
+    if idx > len(wavfilelist) or idx < 0:
       print('ERROR: Your selection "%s" is not a valid file number, exiting.' % response)
       exit(0)
     idx = idx - 1
@@ -184,7 +186,7 @@ def selectHtmlInputFile():
 def determineHtmlPageType(filepath):
   """ Class to help with web page tracklists that use a variation of the
     more common page structure """
-  soup = BeautifulSoup (open(filepath, errors='replace'), features="lxml")
+  soup = BeautifulSoup (open(filepath, errors='replace'), "html5lib")
   tables = soup.find_all('table')
   for table in tables:
     if 'class' in table.attrs:
@@ -214,7 +216,7 @@ def displaywavFileList(filepath):
   print("\nSelect the name of the .wav file containing the audio data:\n")
   filelist = listdir(filepath)
   index = 1
-  htmlfilelist = []
+  wavfilelist = []
   for filename in filelist:
     if filename.endswith('.wav'):
       print('\t[%d] %s' % (index, filename))
@@ -224,7 +226,7 @@ def displaywavFileList(filepath):
 
 def readAlbumLabelDataFromHtml(filepath, tabletype):
   """ Read the track list table from the HTML file provided """
-  soup = BeautifulSoup (open(filepath, errors='replace'), features="lxml")
+  soup = BeautifulSoup (open(filepath, errors='replace'), "html5lib")
   found_pos = False
   found_time = False
   tracklist = []
@@ -338,7 +340,7 @@ def parseTitleString(pagetitle):
 def readAlbumTagsDataFromHtml(filepath):
   """ Read the title, artist, genre, and year metadata from the HTML file """
   tagsdict = {}
-  soup = BeautifulSoup (open(filepath, errors='replace'), features="lxml")
+  soup = BeautifulSoup (open(filepath, errors='replace'), "html5lib")
   pagetitle = soup.find('title').text
   # note use of cleanUpString() due to tags used in XML string format
   (album,artist,year,year_found) = parseTitleString(pagetitle)
@@ -436,18 +438,20 @@ def calculateTiming(leadin,trackgap,tracklist):
       # handle the tracks after the first (trackgap offset)
       totalsecs += getSecs(prevtracktime) + float(trackgap)
       labelinf['time'] = totalsecs
-      trackend = totalsecs + float(getSecs(track['time']))
+      trackend = totalsecs + float(getSecs(track['time'])) - trackgap
       labelinf['duration'] = trackend
       prevtracktime = track['time']
       labelinf['title'] = track['title']
       calclist.append(labelinf)
   return calclist
 
-def findSilence(filename, tracklist):
+def findSilence(silence, filename, tracklist):
   myaudio = AudioSegment.from_wav(filename)
   dbFS = myaudio.dBFS
+  print("Detecting silent parts of recording, please be patient...")
   silence = silence.detect_silence(myaudio, min_silence_len=1000, silence_thresh=dbFS-16)
-  print(silence)
+  silence = [((start/1000.0),(stop/1000.0)) for start,stop in silence] #in sec
+  return silence
 
 def writeLabelFile(labellist, tagsdict):
   """ Write the plaintext labels output file to the current path. """
@@ -468,8 +472,34 @@ def writeLabelFile(labellist, tagsdict):
         filehandle.write('%f\t%f\t%s\n' % (label['time'],label['duration'],label['title']))
     filehandle.close()
 
+def buildSilenceList(silence, calclist):
+  """ Use silence detected by pydub and compare to times calculated from discogs entry.
+  Choose the moment of silence closest to what the estimated time is.  """
+  beginnings = [i[1] for i in silence]
+  ends = [i[0] for i in silence]
+  newlist = []
+  for item in calclist:
+    # build lists showing distance between calculated track beginnings and ends,
+    # and sort by distance.  Choose the one closest to the estimated time; assume
+    # the beginning of a silent period is the end of a track, and the end of a silent
+    # space is the beginning of a track.
+    b = [[abs(i-item["time"]), i] for i in beginnings]
+    e = [[abs(i-item["duration"]), i] for i in ends]
+    b = sorted(b, key=lambda x: x[0])
+    e = sorted(e, key=lambda x: x[0])
+    newitem = item
+    #assign the beginning and end of a silent region to this value, unless it's 
+    #more than 30 seconds away from the estimated time; in that case, keep the old value.
+    b1 = b[0][1]
+    e1 = e[0][1]
+    if abs(newitem["time"]-b1) < 30:
+      newitem["time"] = b1
+    if abs(newitem["duration"]-e1) < 30:
+      newitem["duration"] = e1
+    newlist.append(newitem)
+  return(newlist)
 
-def buildLabelFile(tracklist,albumname):
+def buildLabelFile(silence, tracklist, albumname):
   """ Convert the tracklist data to the label file format """
   #print('DBG: track list count = %d' % (len(tracklist)))
   print("\n++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -479,8 +509,13 @@ def buildLabelFile(tracklist,albumname):
     "Audacity recording.")
   leadin = getLeadInTime()
   trackgap = getTrackGapTime()
-  calclist = calculateTiming(leadin,trackgap,tracklist)
-  print('The label list is:\n------------------------------------------')
+  calclist = calculateTiming(leadin, trackgap, tracklist)
+  print('The label list before detecting silence is:\n------------------------------------------')
+  for item in calclist:
+    print('%f\t%f\t%s' % (item['time'],item['duration'],item['title']))
+  print('------------------------------------------')
+  calclist = buildSilenceList(silence, calclist)
+  print('The new label list is:\n------------------------------------------')
   for item in calclist:
     print('%f\t%f\t%s' % (item['time'],item['duration'],item['title']))
   print('------------------------------------------')
@@ -523,11 +558,12 @@ def cleanUpString(inputstring):
 def main():
   """ program main function """
   htmlfile,ignorethis = selectHtmlInputFile()
-  wavfile,ignorethis = selectwavInputFile()
+  wavfile,ignorethis = selectWavInputFile()
   pagetype = determineHtmlPageType(htmlfile)
   tracklist = readAlbumLabelDataFromHtml(htmlfile,pagetype)
   tagsdict = readAlbumTagsDataFromHtml(htmlfile)
-  labellist = buildLabelFile(tracklist,tagsdict['ALBUM'])
+  quiet = findSilence(silence, wavfile, tracklist)
+  labellist = buildLabelFile(quiet, tracklist, tagsdict['ALBUM'])
   writeLabelFile(labellist,tagsdict)
   writeTagsFile(tagsdict)
   print('Process completed.')
