@@ -507,8 +507,10 @@ def buildLabelFile(silence, tracklist, albumname):
   print(  "++++++++++++++++++++++++++++++++++++++++++++++++++++")
   print(  "Please provide answers to the following questions about the",\
     "Audacity recording.")
-  leadin = getLeadInTime()
-  trackgap = getTrackGapTime()
+  leadin = 0
+  trackgap = 0
+#  leadin = getLeadInTime()
+#  trackgap = getTrackGapTime()
   calclist = calculateTiming(leadin, trackgap, tracklist)
   print('The label list before detecting silence is:\n------------------------------------------')
   for item in calclist:
