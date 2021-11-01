@@ -186,7 +186,7 @@ def selectHtmlInputFile():
 def determineHtmlPageType(filepath):
   """ Class to help with web page tracklists that use a variation of the
     more common page structure """
-  soup = BeautifulSoup (open(filepath, errors='replace'), "html.parser")
+  soup = BeautifulSoup (open(filepath, errors='replace'), "html5lib")
   tables = soup.find_all('table')
   for table in tables:
     if 'class' in table.attrs:
@@ -226,7 +226,7 @@ def displaywavFileList(filepath):
 
 def readAlbumLabelDataFromHtml(filepath, tabletype):
   """ Read the track list table from the HTML file provided """
-  soup = BeautifulSoup (open(filepath, errors='replace'), "html.parser")
+  soup = BeautifulSoup (open(filepath, errors='replace'), "html5lib")
   found_pos = False
   found_time = False
   tracklist = []
@@ -340,7 +340,7 @@ def parseTitleString(pagetitle):
 def readAlbumTagsDataFromHtml(filepath):
   """ Read the title, artist, genre, and year metadata from the HTML file """
   tagsdict = {}
-  soup = BeautifulSoup (open(filepath, errors='replace'), "html.parser")
+  soup = BeautifulSoup (open(filepath, errors='replace'), "html5lib")
   pagetitle = soup.find('title').text
   # note use of cleanUpString() due to tags used in XML string format
   (album,artist,year,year_found) = parseTitleString(pagetitle)
