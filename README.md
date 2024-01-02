@@ -1,5 +1,9 @@
 # vinyl-ripper-helper
 
+---
+Update, January 1, 2024: I haven't made any changes since Halloween 2021.  I'd started modifying this script to suit my needs, and I think it came close.  I was in the process of ripping my late father-in-law's record collection, when, on December 21, 2022, my house was destroyed by a fire.  The record collection, turntable, and computer I was using, were all destroyed.  As a result, since I no longer have a record collection or turntable, I'm definitely done with this.  A big thank you to Scott C for his code and his patience.
+---
+
 This is a branch of Scott C.'s excellent vinyl ripper utility.  It did about 99% of what I wanted in a helper app, and works great for several others.  However, for my own wants and needs, I wanted to have the script attempt to estimate the beginning and end of the tracks, instead of just the beginning, and used PyDub to add silence detection to the script.  I also tend to trim the silence from the beginning and end of recordings manually, so I removed the feature to estimate the seconds leading into the first track, and the length of the gap.
 
 What Pydub adds to the process is a lengthy scan for silence greater than a second long, less than -16dB.  It then compares the beginning and end of each silence gap to the estimated track lengths, and provided one is found that's less than 30 seconds distant from the estimated track length, replaces the estimated time with the one discovered by Pydub.  For Pydub to work, you need a 64-bit build of Python, enough available memory to load the entire clip into memory, and patience.  I suggest getting a cup of tea while you wait.  Once it's done scanning, it works much like the original script.
